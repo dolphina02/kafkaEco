@@ -1,0 +1,75 @@
+// Step 1: 기본 스트림 생성
+CREATE STREAM fs_access_log  (
+    policy_type string key,
+    logdate STRING,	
+    loglevel STRING,
+    `ub.ip_address` STRING,
+    `ub.page_url` STRING,
+    `ub.referrer` STRING,
+    `ub.response_code` INTEGER,
+    `ub.session_id` STRING,
+    `ub.timestamp` STRING,
+    `ub.user_agent` STRING,
+    `ub.user_event` STRING
+) WITH (KAFKA_TOPIC='webLogPulseSourceConnector-16', VALUE_FORMAT='JSON');
+
+// Step 2:  기본 stream 에서 alias 변경
+CREATE STREAM fs_access_log_simple AS
+    SELECT
+        policy_type,
+        logdate,
+        loglevel,
+        `ub.ip_address` AS ip_address,
+        `ub.page_url` AS page_url,
+        `ub.referrer` AS referrer,
+        `ub.response_code` AS response_code,
+        `ub.session_id` AS session_id,
+        STRINGTOTIMESTAMP(`ub.timestamp`, 'yyyy-MM-dd''T''HH:mm:ssX') AS ub_timestamp,
+        `ub.user_agent` AS user_agent,
+        `ub.user_event` AS user_event
+    FROM fs_access_log
+
+// Step 3 : 사용대상 stream에서 10초 단위로 데이터 변경
+create stream fs_access_log_10s_term as
+  select policy_type, ip_address, (ub_timestamp/1000)-(ub_timestamp/1000%10) fr_dt, (ub_timestamp/1000)+(10-ub_timestamp/1000%10) as to_dt
+  from fs_access_log_simple;
+
+// Step 4 : policy stream 생성
+create stream fs_abnormal_tx_policy (
+  policy_id string,
+  policy_type string,
+  policy_limit integer,
+  standard integer,
+  unit string,
+  created_time string
+)
+with(kafka_topic='fs_abnormal_tx_policy', value_format = 'json');
+
+// Step 5 : policy grouping - type1
+CREATE TABLE current_policy as
+SELECT
+    policy_type,
+    LATEST_BY_OFFSET(policy_id) AS latest_policy_id,
+    LATEST_BY_OFFSET(standard) AS latest_standard,
+    LATEST_BY_OFFSET(unit) AS latest_unit,
+    LATEST_BY_OFFSET(created_time) AS latest_created_time,
+    LATEST_BY_OFFSET(policy_limit) AS policy_limit
+FROM
+    fs_abnormal_tx_policy
+GROUP BY
+    policy_type
+EMIT CHANGES;
+
+// Step 5 : policy grouping - type2
+CREATE TABLE wd_current_policy as
+select policy_type, max(policy_limit) as limit
+from fs_abnormal_tx_policy
+WINDOW TUMBLING (SIZE 10 seconds, RETENTION 2 DAYS)
+group by policy_type;
+
+-- Step 6: 임계값 초과 여부 확인
+select a.policy_type, b.policy_limit, ip_address, from_unixtime(fr_dt*1000) fr_dt, from_unixtime(to_dt*1000) to_dt, count(*) access_cnt 
+from fs_access_log_10s_term a left join fs_policy_offset b on a.policy_type = b.policy_type
+group by a.policy_type, b.policy_limit, ip_address,  from_unixtime(fr_dt*1000), from_unixtime(to_dt*1000)
+having count(*) > b.policy_limit
+emit changes;

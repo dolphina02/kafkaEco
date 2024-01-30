@@ -1,0 +1,20 @@
+// Stream 생성 (From purchase)
+CREATE STREAM str_purchase (USERID VARCHAR, PURCHASE_AMOUNT DOUBLE) WITH (KAFKA_TOPIC='purchase', VALUE_FORMAT='JSON');
+
+// Stream 생성 (From user)
+CREATE STREAM str_usr (USERID VARCHAR, AGE INT) WITH (KAFKA_TOPIC='user', VALUE_FORMAT='JSON');
+
+// Join
+CREATE STREAM test_joined_stream AS
+  SELECT str_usr.USERID AS USERID, PURCHASE_AMOUNT, AGE
+  FROM str_usr
+  LEFT JOIN str_purchase WITHIN 5 MINUTES
+  ON str_purchase.USERID = str_usr.USERID;
+
+
+// filtering and creation streams
+CREATE STREAM AGE_ANALYSIS_20 AS SELECT * FROM test_chaahn_joined_stream WHERE AGE = 20;
+
+CREATE STREAM AGE_ANALYSIS_30 AS SELECT * FROM test_chaahn_joined_stream WHERE AGE = 30;
+
+CREATE STREAM AGE_ANALYSIS_40 AS SELECT * FROM test_chaahn_joined_stream WHERE AGE = 40;

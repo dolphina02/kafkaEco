@@ -1,0 +1,31 @@
+//  stream creation
+CREATE STREAM login_info_share (
+  login_dt string, user_id string, username string
+) WITH (kafka_topic = 'loginTopic', VALUE_FORMAT = 'JSON');
+
+
+CREATE STREAM logout_info_share
+(
+  logout_dt string, user_id string, username string
+) WITH (KAFKA_TOPIC='logout', VALUE_FORMAT='JSON')
+;
+
+// create stream-join (5hrs, 1min)
+create stream session_info_share_5hrs as
+select a.login_dt, b.logout_dt, a.user_id, a.username
+from LOGIN_INFO_SHARE a
+inner join logout_info_share b within 1 minutes on a.user_id = b.user_id
+emit changes;
+
+create stream session_info_share_1min as
+select a.login_dt, b.logout_dt, a.user_id, a.username
+from LOGIN_INFO_SHARE a
+inner join logout_info_share b within 1 minutes on a.user_id = b.user_id
+emit changes;
+
+// create table-avg
+create table avg_session_age_info AS
+select a_user_id, avg((unix_timestamp(logout_dt)- unix_timestamp(login_dt)) /1000) as avg_session_age
+from session_info_share_1min
+group by a_user_id;
+
