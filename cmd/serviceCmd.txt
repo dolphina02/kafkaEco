@@ -1,0 +1,11 @@
+#Kafka Server 
+sudo systemctl daemon-reload
+sudo systemctl enable zookeeper.service
+sudo systemctl enable kafka.service
+sudo systemctl start zookeeper.service 
+sudo systemctl start kafka.service 
+
+#Connect Server
+sudo systemctl daemon-reload
+sudo systemctl enable connect.service
+sudo systemctl start connect.service

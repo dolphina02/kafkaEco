@@ -1,0 +1,12 @@
+[Unit]
+Description=My Connect Service
+After=network.target 
+
+[Service]
+Type=simple
+User=ubuntu
+ExecStart=/home/ubuntu/confluent-7.5.2/bin/connect-distributed /home/ubuntu/confluent-7.5.2/etc/kafka/connect-distributed.properties
+Restart=on-abnormal
+
+[Install]
+WantedBy=multi-user.target

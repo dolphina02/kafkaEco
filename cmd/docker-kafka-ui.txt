@@ -1,0 +1,8 @@
+# Docker 설치
+sudo apt-get update
+sudo wget -qO- http://get.docker.com/ | sh
+# 아래의 방법으로도 가능
+sudo apt-get install docker-ce
+
+#kafka-ui 띄우기
+docker run -d -p 8080:8080 -e DYNAMIC_CONFIG_ENABLED=true provectuslabs/kafka-ui

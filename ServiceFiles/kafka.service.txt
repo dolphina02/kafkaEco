@@ -1,0 +1,13 @@
+[Unit]
+Requires=zookeeper.service
+After=zookeeper.service
+
+[Service]
+Type=simple
+User=ubuntu
+ExecStart=/bin/sh -c '/home/ubuntu/confluent-7.5.2/bin/kafka-server-start /home/ubuntu/confluent-7.5.2/etc/kafka/server.properties > /home/ubuntu/confluent-7.5.2/logs/kafka.log 2>&1'
+ExecStop=/home/ubuntu/confluent-7.5.2/bin/kafka-server-stop
+Restart=on-abnormal
+
+[Install]
+WantedBy=multi-user.target

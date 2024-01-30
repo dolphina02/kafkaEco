@@ -1,0 +1,13 @@
+[Unit]
+Requires=network.target remote-fs.target
+After=network.target remote-fs.target
+
+[Service]
+Type=simple
+User=ubuntu
+ExecStart=/home/ubuntu/confluent-7.5.2/bin/zookeeper-server-start /home/ubuntu/confluent-7.5.2/etc/kafka/zookeeper.properties
+ExecStop=/home/ubuntu/confluent-7.5.2/bin/zookeeper-server-stop
+Restart=on-abnormal
+
+[Install]
+WantedBy=multi-user.target

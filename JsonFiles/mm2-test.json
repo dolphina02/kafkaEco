@@ -1,0 +1,13 @@
+{
+  "name":"fc-mm2-test3",
+  "config": {
+    "connector.class": "org.apache.kafka.connect.mirror.MirrorSourceConnector",
+    "name":"fc-mm2-test3",
+    "source.cluster.alias":"source",
+    "topics":"debe-avro-source-.public.fast_jdbc_test",
+    "source.cluster.bootstrap.servers":"172.31.8.119:9092",
+    "target.cluster.bootstrap.servers":"172.31.0.8:9092",
+    "producer.override.bootstrap.servers":"172.31.0.8:9092",
+    "offset-syncs.topic.replication.factor":"1"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "webLogEsSinkConnector-16",
+  "config": {
+    "connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
+    "tasks.max": "1",
+    "topics": "fc-log4j-filepulse-source",
+    "key.ignore": "true",
+    "schema.ignore": "true",
+    "connection.url": "http://3.35.156.145:9200",
+    "type.name": "_doc",
+    "index.name" : "webLogPulseSourceConnector-16",
+    "connection.username": "",
+    "connection.password": "",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter.schemas.enable": "false"
+  }
+}

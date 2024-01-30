@@ -1,0 +1,20 @@
+// postgresql 설치
+sudo apt-get update
+sudo apt install postgresql-14
+
+// postgresql 접근 설정변경
+vi /etc/postgresql/14/main/pg_hba.conf 
+vi /etc/postgresql/14/main/postgresql.conf
+
+// 확장모듈 설치
+sudo apt-get install postgresql-14-decoderbufs
+
+// service 시작
+sudo service postgresql start
+
+// postgresql 접근
+psql -U postgres -d postgres 
+
+//fastadm user 생성
+CREATE USER fastadnm WITH PASSWORD ‘fastadm' SUPERUSER; 
+
